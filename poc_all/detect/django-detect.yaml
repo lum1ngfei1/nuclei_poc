@@ -1,0 +1,61 @@
+id: django-detect
+
+info:
+  name: Django Detection
+  author: Chirag Mistry
+  severity: info
+  description: |
+    An instance running Django is detected by looking for specific HTTP headers, HTML tags, and known endpoints.
+  metadata:
+    verified: true
+    max-request: 9
+    shodan-query: http.component:"django"
+  tags: django,detect,tech
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+      - "{{BaseURL}}/robots.txt"
+      - "{{BaseURL}}/sitemap.xml"
+      - "{{BaseURL}}/favicon.ico"
+      - "{{BaseURL}}/admin/"
+      - "{{BaseURL}}/static/"
+      - "{{BaseURL}}/media/"
+      - "{{BaseURL}}/index.php"
+      - "{{BaseURL}}/django-admin/"
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Powered by Django"
+          - "django-project"
+          - "Django Software Foundation"
+        condition: or
+        case-insensitive: true
+
+      - type: status
+        status:
+          - 200
+          - 403
+          - 404
+        condition: or
+
+    extractors:
+      - type: regex
+        part: body
+        name: version
+        regex:
+          - 'Django ([0-9.]+)'
+          - 'Powered by Django ([0-9.]+)'
+
+      - type: regex
+        part: body
+        name: django_id
+        regex:
+          - 'django-site-id=([a-z0-9]+)'
+          - 'django\.org/([^/]+)'
+# digest: 490a0046304402206b52325b205596bdce59c432dd18ca6d01af2c615ba6b565044cddef080b66f1022027264d517217bd287f43747f88f972de1b5e9b603b0353a75994cf946ba0d04e:922c64590222798bb761d5b6d8e72950
